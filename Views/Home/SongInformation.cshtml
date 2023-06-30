@@ -1,0 +1,19 @@
+﻿@using JukeBox
+
+
+@{
+    // Layout = null;
+    Songs song = (Songs)ViewData["Song"];
+}
+
+
+<div class="text-center">
+    
+    
+    <h1>@song.Name</h1>
+    <p>Artist : @song.Artist</p>
+    <p>Genre : @song.Genre</p>
+    <p>Album : @song.Album</p>
+    <p>Duration : @song.Duration</p>
+    
+</div>

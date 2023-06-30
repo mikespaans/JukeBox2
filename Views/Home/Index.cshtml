@@ -1,0 +1,56 @@
+﻿@using JukeBox
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Home page";
+    
+    var genres = ViewData["Genres"] as List<Genres>;
+    var songs = ViewData["Songs"] as List<Songs>;
+    var user = ViewData["user"];
+}
+<script>
+    function navigateToIndex() {
+            window.location.href = '/Home/Index?user=';
+        }
+</script>
+
+
+
+
+<div class="text-center">
+    <h1 class="display-4">JukeBox</h1>
+    
+    @if (user != null)
+    {
+        <button id="LogOut" onclick="navigateToIndex()">Logout</button>
+        <p>@user</p>
+    }
+
+    <p>JukeBox home page</p>
+    <form>
+        <select name="genre">
+            <option value="">Select a genre</option>
+            @foreach(var genre in genres)
+            {
+                <option value="@genre.Name">@genre.Name</option>
+            }
+        
+        </select>
+        <input type="submit" value="Search"/>
+
+    </form>
+    
+    <form>
+        <div class="songs">
+            @foreach(var songs in songs)
+            {
+                <div class="song" onclick="location.href='/Home/SongInformation?SelectedSongId=@songs.Id'" name="ClickedSong">
+                    <p1>
+                        @songs.Name
+                    </p1>
+                
+
+                </div>
+            }
+        </div>
+    </form>
+</div>
