@@ -20,16 +20,10 @@ public class Songs
 
 public class Users
 {
-    
+
     public int Id { get; set; }
     public string Name { get; set; }
-    
-    public string Password { get; set; }
-    // public List<PlayListclass> PlayList { get; set; }
-}
 
-// public class PlayListclass
-// {
-//     public int SongId { get; set; }
-//     
-// }
+    public string Password { get; set; }
+    public string PlayList { get; set; }
+}

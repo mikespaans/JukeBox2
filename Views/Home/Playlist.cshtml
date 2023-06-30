@@ -1,19 +1,40 @@
-﻿@page
-@model JukeBox.Views.Home.Playlist
-
+﻿@using JukeBox
 @{
-    Layout = null;
+    var user = ViewData["user"];
+    var songs = ViewData["Songs"] as List<Songs>;
+    var AllSongs = ViewData["AllSongs"] as List<Songs>;
 }
 
-<!DOCTYPE html>
+<script>
+    function DeleteSong(songId, user) {
+        console.log("test");
+        window.location.href = `/Home/PlayList?user=${user}&SongId=${songId}`;
+    }
+</script>
 
-<html>
-<head>
-    <title></title>
-</head>
-<body>
-<div>
-    
+<form method="post" action="/Home/PlayList">
+    <div class="AddSongsDropdown">
+        <select name="SongToAdd">
+            <option value="">Select a song</option>
+            @foreach(var song in AllSongs)
+            {
+                <option value="@song.Id">@song.Name</option>
+            }
+        </select>
+        <input type="hidden" name="user" value="@user" />
+        <input type="submit" value="Add to Playlist" />
+    </div>
+</form>
+
+<div class="text-center">
+    <h1>Playlist</h1>
+    @foreach (var song in songs)
+    {
+        <div class="song">
+            <p1>
+                @song.Name
+            </p1>
+            <button id="DeleteSong" onclick="DeleteSong('@song.Id', '@user')">Delete</button>
+        </div>
+    }
 </div>
-</body>
-</html>

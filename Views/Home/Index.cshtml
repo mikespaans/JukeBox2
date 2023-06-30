@@ -19,9 +19,12 @@
 <div class="text-center">
     <h1 class="display-4">JukeBox</h1>
     
+    
+    
     @if (user != null)
     {
         <button id="LogOut" onclick="navigateToIndex()">Logout</button>
+        <button id ="Playlist" onclick="location.href='/Home/Playlist?user=@user'">Playlist</button>
         <p>@user</p>
     }
 
