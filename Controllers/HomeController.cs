@@ -136,11 +136,11 @@ namespace JukeBox
                     }
                 }
 
-                dbcontext.Users.Add(new Users { Name = username, Password = password });
+                dbcontext.Users.Add(new Users { Name = username, Password = password, PlayList = "1"});
                 dbcontext.SaveChanges();
             }
 
-            return View();
+            return RedirectToAction("Index");
         }
 
         public IActionResult LoginFailed(string? Failed)
