@@ -23,7 +23,7 @@
     
     @if (user != null)
     {
-        <button id="LogOut" onclick="navigateToIndex()">Logout</button>
+        <a asp-controller="Home" asp-action="Logout" class="btn btn-primary">Logout</a>
         <button id ="Playlist" onclick="location.href='/Home/Playlist?user=@user'">Playlist</button>
         <p>@user</p>
     }

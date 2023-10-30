@@ -1,201 +1,163 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-
-
-namespace JukeBox;
-
-public class HomeController : Controller
+namespace JukeBox
 {
-
-    private readonly ILogger<HomeController> _logger;
-
-    public HomeController(ILogger<HomeController> logger)
+    public class HomeController : Controller
     {
-        _logger = logger;
-    }
+        private readonly ILogger<HomeController> _logger;
 
-    // GET
-    public IActionResult Index(string? genre, string? user)
-    {
-        Console.WriteLine("Fakka");
-        // Console.WriteLine(genre);
-        Console.WriteLine($"user : {user}");
-
-
-        using (var context = new DbdContextClass())
+        public HomeController(ILogger<HomeController> logger)
         {
-            var genres = context.Genres.ToList();
-            var songs = context.Songs.Where(s => s.Genre == genre).ToList();
-
-
-
-            ViewData["Genres"] = genres;
-            ViewData["Songs"] = songs;
-            ViewData["user"] = user;
-            return View();
+            _logger = logger;
         }
 
-    }
-
-    public IActionResult SongInformation(int? SelectedSongId)
-    {
-        Console.WriteLine(SelectedSongId);
-        using (var context = new DbdContextClass())
+        public IActionResult Index(string? genre)
         {
-            var song = context.Songs.FirstOrDefault(s => s.Id == SelectedSongId);
-            ViewData["Song"] = song;
-            return View();
-        }
-    }
-
-    public IActionResult Login(string? username, string? password)
-    {
-        var LogginIn = false;
-
-        Console.WriteLine(username);
-        Console.WriteLine(password);
-        if (username == null || password == null)
-        {
-            return View();
-        }
-
-        using (var dbcontext = new DbdContextClass())
-        {
-            var user = dbcontext.Users.FirstOrDefault(u => u.Name == username);
-            if (user.Name == username && user.Password == password)
+            using (var context = new DbdContextClass())
             {
-                LogginIn = true;
-                // HttpContext.Session.SetString("LoggedUser", user.Name);
-                ViewData["user"] = user.Name;
-                return RedirectToAction("Index", new { user = user.Name });
+                var genres = context.Genres.ToList();
+                var songs = context.Songs.Where(s => s.Genre == genre).ToList();
+
+                // Set the user in ViewData
+                ViewData["Genres"] = genres;
+                ViewData["Songs"] = songs;
+                ViewData["user"] = HttpContext.Session.GetString("LoggedUser");
+
+                return View();
             }
-            else
-            {
+        }
 
-                LogginIn = false;
+
+        public IActionResult SongInformation(int? SelectedSongId)
+        {
+            var user = HttpContext.Session.GetString("LoggedUser");
+
+            using (var context = new DbdContextClass())
+            {
+                var song = context.Songs.FirstOrDefault(s => s.Id == SelectedSongId);
+                ViewData["Song"] = song;
+                return View();
+            }
+        }
+
+        public IActionResult Login(string? username, string? password)
+        {
+            var LogginIn = false;
+
+            if (username == null || password == null)
+            {
+                return View();
             }
 
-        }
-
-        ViewData["LogginIn"] = LogginIn;
-
-
-        return View();
-    }
-    
-    public IActionResult Playlist(string? user, string? SongId, string? SongToAdd)
-    {
-        
-        using (var dbcontext = new DbdContextClass())
-        {
-            
-            
-            var Allsongs = dbcontext.Songs.ToList();
-            
-            var user1 = dbcontext.Users.FirstOrDefault(u => u.Name == user);
-            var playlist = dbcontext.Users.FirstOrDefault(u => u.Name == user).PlayList;
-            var songs = new List<Songs>();
-            if (playlist != null)
+            using (var dbcontext = new DbdContextClass())
             {
-                var playlistArray = playlist.Split(",");
-                foreach (var song in playlistArray)
+                var user = dbcontext.Users.FirstOrDefault(u => u.Name == username);
+                if (user != null && user.Password == password)
                 {
-                    var songId = Int32.Parse(song);
-                    songs.Add(dbcontext.Songs.FirstOrDefault(s => s.Id == songId));
-                }
-            }
-            
-            if (SongId != null)
-            {
-                var songToDelete = songs.FirstOrDefault(s => s.Id.ToString() == SongId);
-                if (songToDelete != null)
-                {
-                    // Remove the song from the playlist
-                    songs.Remove(songToDelete);
-                    user1.PlayList = string.Join(",", songs.Select(s => s.Id.ToString()));
-                    dbcontext.SaveChanges();
-                }
-            }
-            
-            if (SongToAdd != null)
-            {
-                var songToAddId = Int32.Parse(SongToAdd);
-                var songToAdd = dbcontext.Songs.FirstOrDefault(s => s.Id == songToAddId);
-                if (songToAdd != null)
-                {
-                    // Add the song to the playlist
-                    songs.Add(songToAdd);
-                    user1.PlayList = string.Join(",", songs.Select(s => s.Id.ToString()));
-                    dbcontext.SaveChanges();
+                    LogginIn = true;
+                    HttpContext.Session.SetString("LoggedUser", user.Name);
                 }
             }
 
-            foreach (var test in songs)
-            {
-                Console.WriteLine(test.Name);
-            }
-            {
-                
-            }
-            // Console.WriteLine(songs);
-            ViewData["Songs"] = songs;
-            ViewData["user"] = user;
-            ViewData["Allsongs"] = Allsongs;
-            return View();
-        }
-    }
+            ViewData["LogginIn"] = LogginIn;
 
-    public IActionResult Register(string? username, string? password)
-    {
-
-
-        Console.WriteLine(username);
-        Console.WriteLine(password);
-        if (username == null || password == null)
-        {
-            return View();
+            return RedirectToAction("Index");
         }
 
-        using (var dbcontext = new DbdContextClass())
+        public IActionResult Playlist(string? SongId, string? SongToAdd)
         {
-            foreach (var User in dbcontext.Users)
+            var user = HttpContext.Session.GetString("LoggedUser");
+
+            using (var dbcontext = new DbdContextClass())
             {
-                if (User.Name == username)
+                var Allsongs = dbcontext.Songs.ToList();
+                var user1 = dbcontext.Users.FirstOrDefault(u => u.Name == user);
+                var playlist = dbcontext.Users.FirstOrDefault(u => u.Name == user).PlayList;
+                var songs = new List<Songs>();
+                if (playlist != null)
                 {
-
-                    return RedirectToAction("LoginFailed", new { Failed = "Username already exists" });
+                    var playlistArray = playlist.Split(",");
+                    foreach (var song in playlistArray)
+                    {
+                        var songId = Int32.Parse(song);
+                        songs.Add(dbcontext.Songs.FirstOrDefault(s => s.Id == songId));
+                    }
                 }
+
+                if (SongId != null)
+                {
+                    var songToDelete = songs.FirstOrDefault(s => s.Id.ToString() == SongId);
+                    if (songToDelete != null)
+                    {
+                        songs.Remove(songToDelete);
+                        user1.PlayList = string.Join(",", songs.Select(s => s.Id.ToString()));
+                        dbcontext.SaveChanges();
+                    }
+                }
+
+                if (SongToAdd != null)
+                {
+                    var songToAddId = Int32.Parse(SongToAdd);
+                    var songToAdd = dbcontext.Songs.FirstOrDefault(s => s.Id == songToAddId);
+                    if (songToAdd != null)
+                    {
+                        songs.Add(songToAdd);
+                        user1.PlayList = string.Join(",", songs.Select(s => s.Id.ToString()));
+                        dbcontext.SaveChanges();
+                    }
+                }
+
+                ViewData["Songs"] = songs;
+                ViewData["user"] = user;
+                ViewData["Allsongs"] = Allsongs;
+                return View();
             }
-
-            {
-
-            }
-
-            dbcontext.Users.Add(new Users { Name = username, Password = password });
-
-            dbcontext.SaveChanges();
         }
 
+        public IActionResult Register(string? username, string? password)
+        {
+            if (username == null || password == null)
+            {
+                return View();
+            }
 
+            using (var dbcontext = new DbdContextClass())
+            {
+                foreach (var User in dbcontext.Users)
+                {
+                    if (User.Name == username)
+                    {
+                        return RedirectToAction("LoginFailed", new { Failed = "Username already exists" });
+                    }
+                }
 
+                dbcontext.Users.Add(new Users { Name = username, Password = password });
+                dbcontext.SaveChanges();
+            }
 
+            return View();
+        }
 
-        return View();
+        public IActionResult LoginFailed(string? Failed)
+        {
+            ViewData["Failed"] = Failed;
+            return View();
+        }
+
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Remove("LoggedUser");
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
     }
-
-    public IActionResult LoginFailed(string? Failed)
-    {
-        ViewData["Failed"] = Failed;
-        return View();
-    }
-
-
-
-
-    public IActionResult Privacy()
-    {
-        return View();
-    }
-
-    
 }
