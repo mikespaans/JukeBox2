@@ -3,14 +3,38 @@
     var user = ViewData["user"];
     var songs = ViewData["Songs"] as List<Songs>;
     var AllSongs = ViewData["AllSongs"] as List<Songs>;
+    var Playlists = ViewData["Playlists"] as List<Playlist>;
+    var PlaylistName = ViewData["PlaylistName"];
+    var PlaylistId = ViewData["PlaylistId"];
+    
 }
 
 <script>
     function DeleteSong(songId, user) {
         console.log("test");
-        window.location.href = `/Home/PlayList?user=${user}&SongId=${songId}`;
+        window.location.href = `/Home/PlayList?SongId=${songId}`;
+    }
+    function CreatePlaylist() {
+        window.location.href = `/Home/Playlist?CreateNewPlaylist=${true}`;
+    }
+
+    function RenamePlaylist(user) {
+        window.location.href = `/Home/Playlist?user=${user}`;
     }
 </script>
+
+<form>
+        <select name="PlaylistId">
+            <option value="">@PlaylistName</option>
+            @foreach(var playlist in Playlists)
+            {
+                <option value="@playlist.Id">@playlist.Name</option>
+            }
+
+        </select>
+        <input type="submit" value="Search"/>
+
+</form>
 
 <form method="post" action="/Home/PlayList">
     <div class="AddSongsDropdown">
@@ -21,13 +45,15 @@
                 <option value="@song.Id">@song.Name</option>
             }
         </select>
-        <input type="hidden" name="user" value="@user" />
+        <input type="hidden" name="PlaylistId" value="@PlaylistId" />
         <input type="submit" value="Add to Playlist" />
     </div>
 </form>
 
 <div class="text-center">
     <h1>Playlist</h1>
+    <button id="CreatePlaylist" onclick="CreatePlaylist()">Create Playlist</button>
+    <button id="RenamePlaylist" onclick="RenamePlaylist('@user')">Rename Playlist</button>
     @foreach (var song in songs)
     {
         <div class="song">

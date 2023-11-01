@@ -9,6 +9,11 @@ public class DbdContextClass : DbContext
     public DbSet<Genres> Genres { get; set; }
     public DbSet<Songs> Songs { get; set; }
     public DbSet<Users> Users { get; set; }
+    
+    public DbSet<Playlist> Playlists { get; set; }
+    
+    public DbSet<PlaylistSong> PlaylistSongs { get; set; }
+    
     // public DbSet<PlayListclass> PlayListclass { get; set; }
     // Define other DbSets for your entities
     
@@ -53,6 +58,9 @@ public class DbdContextClass : DbContext
     
         modelBuilder.Entity<Users>(entity => 
             { entity.HasKey(u => u.Id); });
+        
+        modelBuilder.Entity<Playlist>()
+            .HasKey(p => p.Id);
 
         // modelBuilder.Entity<PlayListclass>()
         //     .HasNoKey(); // Specify that PlayListclass is a keyless entity type

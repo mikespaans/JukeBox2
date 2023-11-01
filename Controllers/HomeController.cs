@@ -69,54 +69,145 @@ namespace JukeBox
             return RedirectToAction("Index");
         }
 
-        public IActionResult Playlist(string? SongId, string? SongToAdd)
+        // public IActionResult Playlist(string? SongId, string? SongToAdd)
+        // {
+        //     var user = HttpContext.Session.GetString("LoggedUser");
+        //
+        //     using (var dbcontext = new DbdContextClass())
+        //     {
+        //         var Allsongs = dbcontext.Songs.ToList();
+        //         var user1 = dbcontext.Users.FirstOrDefault(u => u.Name == user);
+        //         var playlist = dbcontext.Users.FirstOrDefault(u => u.Name == user).PlayList;
+        //         var songs = new List<Songs>();
+        //         if (playlist != null)
+        //         {
+        //             var playlistArray = playlist.Split(",");
+        //             foreach (var song in playlistArray)
+        //             {
+        //                 var songId = Int32.Parse(song);
+        //                 songs.Add(dbcontext.Songs.FirstOrDefault(s => s.Id == songId));
+        //             }
+        //         }
+        //
+        //         if (SongId != null)
+        //         {
+        //             var songToDelete = songs.FirstOrDefault(s => s.Id.ToString() == SongId);
+        //             if (songToDelete != null)
+        //             {
+        //                 songs.Remove(songToDelete);
+        //                 user1.PlayList = string.Join(",", songs.Select(s => s.Id.ToString()));
+        //                 dbcontext.SaveChanges();
+        //             }
+        //         }
+        //
+        //         if (SongToAdd != null)
+        //         {
+        //             var songToAddId = Int32.Parse(SongToAdd);
+        //             var songToAdd = dbcontext.Songs.FirstOrDefault(s => s.Id == songToAddId);
+        //             if (songToAdd != null)
+        //             {
+        //                 songs.Add(songToAdd);
+        //                 user1.PlayList = string.Join(",", songs.Select(s => s.Id.ToString()));
+        //                 dbcontext.SaveChanges();
+        //             }
+        //         }
+        //
+        //         ViewData["Songs"] = songs;
+        //         ViewData["user"] = user;
+        //         ViewData["Allsongs"] = Allsongs;
+        //         return View();
+        //     }
+        // }
+
+        public IActionResult Playlist(string? SongId, string? SongToAdd, bool? CreateNewPlaylist, string? PlaylistId)
         {
             var user = HttpContext.Session.GetString("LoggedUser");
+            Console.WriteLine(CreateNewPlaylist);
 
             using (var dbcontext = new DbdContextClass())
             {
                 var Allsongs = dbcontext.Songs.ToList();
                 var user1 = dbcontext.Users.FirstOrDefault(u => u.Name == user);
-                var playlist = dbcontext.Users.FirstOrDefault(u => u.Name == user).PlayList;
+                // var playlist = dbcontext.Playlists.FirstOrDefault(u => u.UserId == user1.Id);
+                var playlists = dbcontext.Playlists.Where(u => u.UserId == user1.Id).ToList();
                 var songs = new List<Songs>();
-                if (playlist != null)
+                var PlaylistName = "Select a Playlist";
+                var PlayListId = 0;
+                
+                if (CreateNewPlaylist == true)
                 {
-                    var playlistArray = playlist.Split(",");
-                    foreach (var song in playlistArray)
-                    {
-                        var songId = Int32.Parse(song);
-                        songs.Add(dbcontext.Songs.FirstOrDefault(s => s.Id == songId));
-                    }
+                    Console.WriteLine("Creating new playlist");
+                    dbcontext.Playlists.Add(new Playlist {Name = "New Playlist", UserId = user1.Id});
+                    dbcontext.SaveChanges();
+                    playlists = dbcontext.Playlists.Where(u => u.UserId == user1.Id).ToList();
                 }
 
-                if (SongId != null)
+                if (PlaylistId != null)
                 {
-                    var songToDelete = songs.FirstOrDefault(s => s.Id.ToString() == SongId);
-                    if (songToDelete != null)
+                    var playlistId = Int32.Parse(PlaylistId);
+                    var playlist = dbcontext.Playlists.FirstOrDefault(p => p.Id == playlistId);
+                    if (playlist != null)
                     {
-                        songs.Remove(songToDelete);
-                        user1.PlayList = string.Join(",", songs.Select(s => s.Id.ToString()));
-                        dbcontext.SaveChanges();
+                        PlaylistName = playlist.Name;
+                    }
+                    
+                    if (playlist != null)
+                    {
+                        var playlistSongs = dbcontext.PlaylistSongs.Where(ps => ps.PlaylistId == playlist.Id).ToList();
+                        foreach (var playlistSong in playlistSongs)
+                        {
+                            songs.Add(dbcontext.Songs.FirstOrDefault(s => s.Id == playlistSong.SongId));
+                        }
                     }
                 }
-
-                if (SongToAdd != null)
+                
+                // add somg to playlist
+                if (SongToAdd != null && PlaylistId != null)
                 {
                     var songToAddId = Int32.Parse(SongToAdd);
                     var songToAdd = dbcontext.Songs.FirstOrDefault(s => s.Id == songToAddId);
-                    if (songToAdd != null)
+                    var playlistId = Int32.Parse(PlaylistId);
+                    var playlist = dbcontext.Playlists.FirstOrDefault(p => p.Id == playlistId);
+                    if (songToAdd != null && playlist != null)
                     {
-                        songs.Add(songToAdd);
-                        user1.PlayList = string.Join(",", songs.Select(s => s.Id.ToString()));
+                        dbcontext.PlaylistSongs.Add(new PlaylistSong {PlaylistId = playlist.Id, SongId = songToAdd.Id});
                         dbcontext.SaveChanges();
                     }
                 }
 
+                //delete song from playlist
+                if (SongId != null && PlaylistId != null)
+                {
+                    var songToDeleteId = Int32.Parse(SongId);
+                    var songToDelete = dbcontext.Songs.FirstOrDefault(s => s.Id == songToDeleteId);
+                    var playlistId = Int32.Parse(PlaylistId);
+                    var playlist = dbcontext.Playlists.FirstOrDefault(p => p.Id == playlistId);
+                    if (songToDelete != null && playlist != null)
+                    {
+                        var playlistSong = dbcontext.PlaylistSongs.FirstOrDefault(ps => ps.PlaylistId == playlist.Id && ps.SongId == songToDelete.Id);
+                        if (playlistSong != null)
+                        {
+                            dbcontext.PlaylistSongs.Remove(playlistSong);
+                            dbcontext.SaveChanges();
+                        }
+                    }
+                }
+                
+                
+                
+                
                 ViewData["Songs"] = songs;
                 ViewData["user"] = user;
                 ViewData["Allsongs"] = Allsongs;
+                ViewData["Playlists"] = playlists;
+                ViewData["PlaylistName"] = PlaylistName;
+                ViewData["PlaylistId"] = PlaylistId;
+                
+                
                 return View();
             }
+            
+            
         }
 
         public IActionResult Register(string? username, string? password)
@@ -136,7 +227,7 @@ namespace JukeBox
                     }
                 }
 
-                dbcontext.Users.Add(new Users { Name = username, Password = password, PlayList = "1"});
+                dbcontext.Users.Add(new Users { Name = username, Password = password});
                 dbcontext.SaveChanges();
             }
 

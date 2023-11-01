@@ -2,6 +2,7 @@
 using JukeBox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JukeBox.Migrations
 {
     [DbContext(typeof(DbdContextClass))]
-    partial class DbdContextClassModelSnapshot : ModelSnapshot
+    [Migration("20231030123531_PlaylistTable")]
+    partial class PlaylistTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,33 +50,13 @@ namespace JukeBox.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<string>("SongIds")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
                     b.ToTable("Playlists");
-                });
-
-            modelBuilder.Entity("JukeBox.PlaylistSong", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("PlaylistId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SongId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlaylistId");
-
-                    b.HasIndex("SongId");
-
-                    b.ToTable("PlaylistSongs");
                 });
 
             modelBuilder.Entity("JukeBox.Songs", b =>
@@ -125,30 +108,6 @@ namespace JukeBox.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("JukeBox.PlaylistSong", b =>
-                {
-                    b.HasOne("JukeBox.Playlist", "Playlist")
-                        .WithMany("PlaylistSongs")
-                        .HasForeignKey("PlaylistId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("JukeBox.Songs", "Song")
-                        .WithMany()
-                        .HasForeignKey("SongId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Playlist");
-
-                    b.Navigation("Song");
-                });
-
-            modelBuilder.Entity("JukeBox.Playlist", b =>
-                {
-                    b.Navigation("PlaylistSongs");
                 });
 #pragma warning restore 612, 618
         }

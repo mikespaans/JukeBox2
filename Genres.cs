@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace JukeBox;
 
@@ -25,5 +26,39 @@ public class Users
     public string Name { get; set; }
 
     public string Password { get; set; }
-    public string PlayList { get; set; }
+    
 }
+
+public class Playlist
+{
+    [Key]
+    public int Id { get; set; }
+
+    [Required]
+    [MaxLength(100)]
+    public string Name { get; set; }
+
+    public int DurationInSeconds { get; set; }
+    
+    [ForeignKey("User")]
+    public int UserId { get; set; }
+
+    public List<PlaylistSong> PlaylistSongs { get; set; }
+}
+
+
+public class PlaylistSong
+{
+    [Key]
+    public int Id { get; set; }
+
+    [ForeignKey("Playlist")]
+    public int PlaylistId { get; set; }
+    public Playlist Playlist { get; set; }
+
+    [ForeignKey("Song")]
+    public int SongId { get; set; }
+    public Songs Song { get; set; }
+}
+
+
