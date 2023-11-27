@@ -119,7 +119,7 @@ namespace JukeBox
         //     }
         // }
 
-        public IActionResult Playlist(string? SongId, string? SongToAdd, bool? CreateNewPlaylist, string? PlaylistId)
+        public IActionResult Playlist(string? SongId, string? SongToAdd, bool? CreateNewPlaylist, string? PlaylistId, bool? DeleteSong, bool? DeletePlaylist)
         {
             var user = HttpContext.Session.GetString("LoggedUser");
             Console.WriteLine(CreateNewPlaylist);
@@ -133,13 +133,90 @@ namespace JukeBox
                 var songs = new List<Songs>();
                 var PlaylistName = "Select a Playlist";
                 var PlayListId = 0;
+                var PlaylistDuration = 0;
                 
+                if (PlaylistId != null)
+                {
+                    PlayListId = Int32.Parse(PlaylistId);
+                    PlaylistDuration = dbcontext.Playlists.FirstOrDefault(p => p.Id == PlayListId).DurationInSeconds;
+                }
+                
+                
+                // delete a playlist
+                if (DeletePlaylist == true && PlaylistId != null)
+                {
+                    var playlistId = Int32.Parse(PlaylistId);
+                    var playlist = dbcontext.Playlists.FirstOrDefault(p => p.Id == playlistId);
+                    if (playlist != null)
+                    {
+                        dbcontext.Playlists.Remove(playlist);
+                        dbcontext.SaveChanges();
+                    }
+                    playlists = dbcontext.Playlists.Where(u => u.UserId == user1.Id).ToList();
+                }
+                
+                //creates a new playlist
                 if (CreateNewPlaylist == true)
                 {
                     Console.WriteLine("Creating new playlist");
                     dbcontext.Playlists.Add(new Playlist {Name = "New Playlist", UserId = user1.Id});
                     dbcontext.SaveChanges();
                     playlists = dbcontext.Playlists.Where(u => u.UserId == user1.Id).ToList();
+                }
+                
+                // add somg to playlist
+                if (SongToAdd != null && PlaylistId != null)
+                {
+                    var songToAddId = Int32.Parse(SongToAdd);
+                    var songToAdd = dbcontext.Songs.FirstOrDefault(s => s.Id == songToAddId);
+                    var playlistId = Int32.Parse(PlaylistId);
+                    var playlist = dbcontext.Playlists.FirstOrDefault(p => p.Id == playlistId);
+                    
+                    var SongDuration = songToAdd.Duration.Split(":");
+                    
+                    
+                    
+                    
+                    
+                    if (songToAdd != null && playlist != null)
+                    {
+                        if (int.TryParse(SongDuration[0], out int minutes) && int.TryParse(SongDuration[1], out int seconds))
+                        {
+                            playlist.DurationInSeconds += minutes * 60 + seconds;
+                            dbcontext.SaveChanges();
+                        }
+                        
+                        dbcontext.PlaylistSongs.Add(new PlaylistSong {PlaylistId = playlist.Id, SongId = songToAdd.Id});
+                        dbcontext.SaveChanges();
+                        PlaylistDuration = playlist.DurationInSeconds;
+                    }
+                }
+                
+                //delete song from playlist
+                if (SongId != null && PlaylistId != null && DeleteSong == true)
+                {
+                    var songToDeleteId = Int32.Parse(SongId);
+                    var songToDelete = dbcontext.Songs.FirstOrDefault(s => s.Id == songToDeleteId);
+                    var playlistId = Int32.Parse(PlaylistId);
+                    var playlist = dbcontext.Playlists.FirstOrDefault(p => p.Id == playlistId);
+                    
+                    var SongDuration = songToDelete.Duration.Split(":");
+                    if (songToDelete != null && playlist != null)
+                    {
+                        var playlistSong = dbcontext.PlaylistSongs.FirstOrDefault(ps => ps.PlaylistId == playlist.Id && ps.SongId == songToDelete.Id);
+                        if (playlistSong != null)
+                        {
+                            if (int.TryParse(SongDuration[0], out int minutes) && int.TryParse(SongDuration[1], out int seconds))
+                            {
+                                playlist.DurationInSeconds -= minutes * 60 + seconds;
+                                dbcontext.SaveChanges();
+                            }
+                            
+                            dbcontext.PlaylistSongs.Remove(playlistSong);
+                            dbcontext.SaveChanges();
+                            PlaylistDuration = playlist.DurationInSeconds;
+                        }
+                    }
                 }
 
                 if (PlaylistId != null)
@@ -151,6 +228,7 @@ namespace JukeBox
                         PlaylistName = playlist.Name;
                     }
                     
+                    // show songs in playlist
                     if (playlist != null)
                     {
                         var playlistSongs = dbcontext.PlaylistSongs.Where(ps => ps.PlaylistId == playlist.Id).ToList();
@@ -160,54 +238,51 @@ namespace JukeBox
                         }
                     }
                 }
-                
-                // add somg to playlist
-                if (SongToAdd != null && PlaylistId != null)
-                {
-                    var songToAddId = Int32.Parse(SongToAdd);
-                    var songToAdd = dbcontext.Songs.FirstOrDefault(s => s.Id == songToAddId);
-                    var playlistId = Int32.Parse(PlaylistId);
-                    var playlist = dbcontext.Playlists.FirstOrDefault(p => p.Id == playlistId);
-                    if (songToAdd != null && playlist != null)
-                    {
-                        dbcontext.PlaylistSongs.Add(new PlaylistSong {PlaylistId = playlist.Id, SongId = songToAdd.Id});
-                        dbcontext.SaveChanges();
-                    }
-                }
 
-                //delete song from playlist
-                if (SongId != null && PlaylistId != null)
-                {
-                    var songToDeleteId = Int32.Parse(SongId);
-                    var songToDelete = dbcontext.Songs.FirstOrDefault(s => s.Id == songToDeleteId);
-                    var playlistId = Int32.Parse(PlaylistId);
-                    var playlist = dbcontext.Playlists.FirstOrDefault(p => p.Id == playlistId);
-                    if (songToDelete != null && playlist != null)
-                    {
-                        var playlistSong = dbcontext.PlaylistSongs.FirstOrDefault(ps => ps.PlaylistId == playlist.Id && ps.SongId == songToDelete.Id);
-                        if (playlistSong != null)
-                        {
-                            dbcontext.PlaylistSongs.Remove(playlistSong);
-                            dbcontext.SaveChanges();
-                        }
-                    }
-                }
+               
+
+
+
                 
-                
-                
-                
+
+
                 ViewData["Songs"] = songs;
                 ViewData["user"] = user;
                 ViewData["Allsongs"] = Allsongs;
                 ViewData["Playlists"] = playlists;
                 ViewData["PlaylistName"] = PlaylistName;
                 ViewData["PlaylistId"] = PlaylistId;
+                ViewData["PlaylistDuration"] = PlaylistDuration;
                 
                 
                 return View();
             }
             
             
+        }
+
+        public IActionResult PlaylistRename(string? PlaylistId, string? newPlaylistName)
+        {
+            var user = HttpContext.Session.GetString("LoggedUser");
+            using (var dbcontext = new DbdContextClass())
+            {
+                var user1 = dbcontext.Users.FirstOrDefault(u => u.Name == user);
+                var playlists = dbcontext.Playlists.Where(u => u.UserId == user1.Id).ToList();
+                
+                if (newPlaylistName != null && PlaylistId != null)
+                {
+                    var playlistId = Int32.Parse(PlaylistId);
+                    var playlist = dbcontext.Playlists.FirstOrDefault(p => p.Id == playlistId);
+                    if (playlist != null)
+                    {
+                        playlist.Name = newPlaylistName;
+                        dbcontext.SaveChanges();
+                    }
+                }
+                ViewData["PlaylistId"] = PlaylistId;
+                ViewData["Playlists"] = playlists;
+                return View();
+            }
         }
 
         public IActionResult Register(string? username, string? password)

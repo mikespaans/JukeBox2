@@ -1,0 +1,74 @@
+﻿@using JukeBox
+
+@{
+    var Playlists = ViewData["Playlists"] as List<Playlist>;
+    var playlistId = ViewData["PlaylistId"];
+    
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist Rename</title>
+    <style>
+        /* Styles for the modal */
+        #renameModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ccc;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <h1>Playlist Rename</h1>
+    <form id="renameForm">
+        <div class="AddSongsDropdown">
+            <select id="playlistDropdown" name="PlaylistId">
+                <option value="">Select a playlist</option>
+                @foreach (var playlist in Playlists)
+                {
+                    <option value="@playlist.Id">@playlist.Name</option>
+                }
+            </select>
+            <button type="button" onclick="openRenameModal()">Rename</button>
+        </div>
+    </form>
+
+    <!-- Rename Playlist Modal -->
+    <div id="renameModal">
+        <label for="newPlaylistName">New Playlist Name:</label>
+        <input type="text" id="newPlaylistName">
+        <button type="button" onclick="renamePlaylist()">Save</button>
+        <button type="button" onclick="closeRenameModal()">Close</button>
+    </div>
+
+    <script>
+        function openRenameModal() {
+            document.getElementById("renameModal").style.display = "block";
+        }
+
+        function closeRenameModal() {
+            document.getElementById("renameModal").style.display = "none";
+        }
+
+        function renamePlaylist() {
+            var playlistId = document.getElementById("playlistDropdown").value;
+            var newPlaylistName = document.getElementById("newPlaylistName").value;
+            
+            window.location.href = `/Home/PlaylistRename?PlaylistId=${playlistId}&NewPlaylistName=${newPlaylistName}`;
+            // Perform your logic here to update the playlist name (e.g., using AJAX to send a request to the server)
+
+            // Close the modal
+            closeRenameModal();
+        }
+    </script>
+</body>
+</html>

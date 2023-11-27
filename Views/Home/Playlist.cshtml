@@ -6,20 +6,27 @@
     var Playlists = ViewData["Playlists"] as List<Playlist>;
     var PlaylistName = ViewData["PlaylistName"];
     var PlaylistId = ViewData["PlaylistId"];
+    var PlaylistDuration = ViewData["PlaylistDuration"];
     
 }
 
 <script>
-    function DeleteSong(songId, user) {
+    function DeleteSong(songId) {
         console.log("test");
-        window.location.href = `/Home/PlayList?SongId=${songId}`;
+        window.location.href = `/Home/PlayList?SongId=${songId}&DeleteSong=${true}&PlaylistId=${@PlaylistId}`;
     }
+
+</script>
+
+<script>
     function CreatePlaylist() {
         window.location.href = `/Home/Playlist?CreateNewPlaylist=${true}`;
     }
+</script>
 
-    function RenamePlaylist(user) {
-        window.location.href = `/Home/Playlist?user=${user}`;
+<script>
+    function RenamePlaylist() {
+        window.location.href = `/Home/PlaylistRename`;
     }
 </script>
 
@@ -53,7 +60,9 @@
 <div class="text-center">
     <h1>Playlist</h1>
     <button id="CreatePlaylist" onclick="CreatePlaylist()">Create Playlist</button>
-    <button id="RenamePlaylist" onclick="RenamePlaylist('@user')">Rename Playlist</button>
+    <button id="RenamePlaylist" onclick="RenamePlaylist()">Rename Playlist</button>
+    <button id="DeletePlaylist" onclick="location.href='/Home/Playlist?DeletePlaylist=true&PlaylistId=@PlaylistId'">Delete Playlist</button>
+    <p>@PlaylistDuration</p>
     @foreach (var song in songs)
     {
         <div class="song">
