@@ -1,11 +1,13 @@
 ﻿@{
     // Layout = null;
-
+    var Txt = ViewData["Txt"] as string;
 }
 
 <div class="text-center">
     <h1>Login</h1>
+    <p.>@Txt</p.>
     <div class="container">
+        
         <form>
             <div class="form-group">
                 <label for="username">Username</label>

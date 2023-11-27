@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
@@ -53,6 +54,12 @@ namespace JukeBox
             {
                 return View();
             }
+            
+            using (var sha256 = SHA256.Create())
+            {
+                byte[] hashedBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                password = Convert.ToBase64String(hashedBytes);
+            }
 
             using (var dbcontext = new DbdContextClass())
             {
@@ -61,6 +68,13 @@ namespace JukeBox
                 {
                     LogginIn = true;
                     HttpContext.Session.SetString("LoggedUser", user.Name);
+                }
+
+                else
+                {
+                    var Txt = "Username or password is incorrect";
+                    ViewData["Txt"] = Txt;
+                    return View();
                 }
             }
 
@@ -302,6 +316,12 @@ namespace JukeBox
                     }
                 }
 
+                using (var sha256 = SHA256.Create())
+                {
+                    byte[] hashedBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                    password = Convert.ToBase64String(hashedBytes);
+                }
+                
                 dbcontext.Users.Add(new Users { Name = username, Password = password});
                 dbcontext.SaveChanges();
             }
